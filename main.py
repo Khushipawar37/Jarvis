@@ -1,58 +1,57 @@
 import speech_recognition as sr
 import webbrowser
 import pyttsx3
-import requests
-import os
-
-# pip install pocketsphinx
 
 recognizer = sr.Recognizer()
-engine = pyttsx3.init() 
+engine = pyttsx3.init()
 
-def speak_old(text):
+def speak(text):
     engine.say(text)
     engine.runAndWait()
 
-def processCommand(c):
-    if "open google" in c.lower():
-        webbrowser.open("https://google.com")
-    elif "open facebook" in c.lower():
-        webbrowser.open("https://facebook.com")
-    elif "open youtube" in c.lower():
-        webbrowser.open("https://youtube.com")
-    elif "open linkedin" in c.lower():
-        webbrowser.open("https://linkedin.com")
-    elif c.lower().startswith("play"):
-        song = c.lower().split(" ")[1]
-        link = musicLibrary.music[song]
-        webbrowser.open(link)
+# Example music library
+musicLibrary = {
+    "believer": "https://www.youtube.com/watch?v=7wtfhZwyrcc",
+    "shapeofyou": "https://www.youtube.com/watch?v=JGwWNGJdvx8"
+}
 
+def processCommand(c):
+    c = c.lower()
+    if "open google" in c:
+        webbrowser.open("https://google.com")
+    elif "open facebook" in c:
+        webbrowser.open("https://facebook.com")
+    elif "open youtube" in c:
+        webbrowser.open("https://youtube.com")
+    elif "open linkedin" in c:
+        webbrowser.open("https://linkedin.com")
+    elif c.startswith("play"):
+        song = c.split(" ")[1]
+        if song in musicLibrary:
+            webbrowser.open(musicLibrary[song])
+        else:
+            speak("Sorry, I don’t know that song.")
 
 if __name__ == "__main__":
     speak("Initializing Jarvis....")
     while True:
-        # Listen for the wake word "Jarvis"
-        # obtain audio from the microphone
         r = sr.Recognizer()
-         
-        print("recognizing...")
         try:
             with sr.Microphone() as source:
-                print("Listening...")
-                audio = r.listen(source, timeout=2, phrase_time_limit=1)
+                print("Listening for wake word...")
+                audio = r.listen(source, timeout=5, phrase_time_limit=3)
             word = r.recognize_google(audio)
-            if(word.lower() == "jarvis"):
-                speak("Ya")
-                # Listen for command
+            if word.lower() == "jarvis":
+                speak("Yes?")
                 with sr.Microphone() as source:
                     print("Jarvis Active...")
                     audio = r.listen(source)
                     command = r.recognize_google(audio)
-
                     processCommand(command)
 
-
+        except sr.WaitTimeoutError:
+            pass
+        except sr.UnknownValueError:
+            print("Sorry, I didn’t understand.")
         except Exception as e:
-            print("Error; {0}".format(e))
-
-
+            print("Error:", e)
